@@ -1,0 +1,80 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <AssemblyName>Shirobot.Plugin.MyList</AssemblyName>
+        <RootNamespace>Shirobot.Plugin.MyList</RootNamespace>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+        <HostProjectRoot>$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)\..\..\ShiroBot\ShiroBot\'))</HostProjectRoot>
+        <HostExe>$(HostProjectRoot)bin\Debug\$(TargetFramework)\ShiroBot.exe</HostExe>
+        <HostPluginDir>$(HostProjectRoot)bin\Debug\$(TargetFramework)\plugins\$(AssemblyName)\</HostPluginDir>
+        <Configurations>Debug;DebugPlugin;DebugAdapter;DebugAll;Release</Configurations>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Configuration)'=='Debug'">
+        <StartAction>Program</StartAction>
+        <StartProgram>$(HostExe)</StartProgram>
+        <StartWorkingDirectory>$([System.IO.Path]::GetDirectoryName('$(HostExe)'))</StartWorkingDirectory>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\ShiroBot\ShiroBot.SDK\ShiroBot.SDK.csproj" />
+        <PackageReference Include="ILRepack.Lib.MSBuild.Task" Version="2.0.44.1">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <Content Include="Assets\config.toml">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+            <TargetPath>config.toml</TargetPath>
+        </Content>
+    </ItemGroup>
+
+    <Target Name="RepackPlugin" AfterTargets="Publish" Condition="'$(Configuration)'=='Release'">
+        <PropertyGroup>
+            <MergedPluginFile>$(PublishDir)$(AssemblyName).merged.dll</MergedPluginFile>
+        </PropertyGroup>
+
+        <ItemGroup>
+            <RepackInput Include="$(PublishDir)$(AssemblyName).dll" />
+            <RepackDependency Include="$(PublishDir)*.dll"
+                              Exclude="$(PublishDir)$(AssemblyName).dll;
+                                       $(PublishDir)ShiroBot.SDK.dll;
+                                       $(PublishDir)ShiroBot.Model.dll;
+                                       $(PublishDir)Microsoft*.dll;
+                                       $(PublishDir)System*.dll;
+                                       $(PublishDir)mscorlib.dll;
+                                       $(PublishDir)netstandard.dll" />
+            <RepackInput Include="@(RepackDependency)" />
+        </ItemGroup>
+
+        <ILRepack
+                TargetKind="Dll"
+                OutputFile="$(MergedPluginFile)"
+                InputAssemblies="@(RepackInput)"
+                Internalize="true"
+                Parallel="true"
+                DebugInfo="true" />
+
+        <Copy SourceFiles="$(MergedPluginFile)" DestinationFiles="$(PublishDir)$(AssemblyName).dll" OverwriteReadOnlyFiles="true" />
+        <Delete Files="$(MergedPluginFile)" />
+        <Delete Files="@(RepackDependency)" />
+    </Target>
+
+    <Target Name="CopyPluginToHost"
+            AfterTargets="Build"
+            Condition="'$(Configuration)'=='Debug' or '$(Configuration)'=='DebugPlugin' or '$(Configuration)'=='DebugAll'">
+        <MakeDir Directories="$(HostPluginDir)" />
+
+        <ItemGroup>
+            <PluginDebugOutput Include="$(TargetDir)**\*"
+                               Exclude="$(TargetDir)ShiroBot.SDK.dll;$(TargetDir)ShiroBot.SDK.pdb;$(TargetDir)ShiroBot.Model.dll;$(TargetDir)ShiroBot.Model.pdb" />
+        </ItemGroup>
+
+        <Copy SourceFiles="@(PluginDebugOutput)"
+              DestinationFiles="@(PluginDebugOutput->'$(HostPluginDir)%(RecursiveDir)%(Filename)%(Extension)')"
+              SkipUnchangedFiles="true" />
+    </Target>
+
+</Project>
