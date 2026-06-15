@@ -1,11 +1,10 @@
 using ShiroBot.Model.Common;
 using ShiroBot.SDK.Plugin;
-using Shirobot.Plugin.MyList.Webdav;
 using Shirobot.Plugin.MyList.Webdav.Mapping;
 
 namespace Shirobot.Plugin.MyList.Webdav.Diagnostics;
 
-internal sealed class WebDavDiagnostics(IBotContext context, VirtualWebDavConfig config, GroupFileWebDavMapper mapper)
+internal sealed class WebDavDiagnostics(IBotContext context, GroupFileWebDavMapper mapper)
 {
     public async Task<string> BuildFileListTextAsync()
     {

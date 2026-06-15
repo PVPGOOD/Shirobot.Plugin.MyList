@@ -7,7 +7,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
-        <HostProjectRoot>$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)\..\..\ShiroBot\ShiroBot\'))</HostProjectRoot>
+        <HostProjectRoot>$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)\..\ShiroBot\ShiroBot\'))</HostProjectRoot>
         <HostExe>$(HostProjectRoot)bin\Debug\$(TargetFramework)\ShiroBot.exe</HostExe>
         <HostPluginDir>$(HostProjectRoot)bin\Debug\$(TargetFramework)\plugins\$(AssemblyName)\</HostPluginDir>
         <Configurations>Debug;DebugPlugin;DebugAdapter;DebugAll;Release</Configurations>
@@ -20,15 +20,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\ShiroBot\ShiroBot.SDK\ShiroBot.SDK.csproj" />
+        <PackageReference Include="ShiroBot.SDK" Version="0.3.0" />
         <PackageReference Include="ILRepack.Lib.MSBuild.Task" Version="2.0.44.1">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <Content Include="Assets\config.toml">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-            <TargetPath>config.toml</TargetPath>
-        </Content>
     </ItemGroup>
 
     <Target Name="RepackPlugin" AfterTargets="Publish" Condition="'$(Configuration)'=='Release'">
@@ -42,7 +38,6 @@
                               Exclude="$(PublishDir)$(AssemblyName).dll;
                                        $(PublishDir)ShiroBot.SDK.dll;
                                        $(PublishDir)ShiroBot.Model.dll;
-                                       $(PublishDir)Microsoft*.dll;
                                        $(PublishDir)System*.dll;
                                        $(PublishDir)mscorlib.dll;
                                        $(PublishDir)netstandard.dll" />
@@ -53,6 +48,7 @@
                 TargetKind="Dll"
                 OutputFile="$(MergedPluginFile)"
                 InputAssemblies="@(RepackInput)"
+                LibraryPath="$(PublishDir)"
                 Internalize="true"
                 Parallel="true"
                 DebugInfo="true" />
@@ -76,5 +72,4 @@
               DestinationFiles="@(PluginDebugOutput->'$(HostPluginDir)%(RecursiveDir)%(Filename)%(Extension)')"
               SkipUnchangedFiles="true" />
     </Target>
-
 </Project>

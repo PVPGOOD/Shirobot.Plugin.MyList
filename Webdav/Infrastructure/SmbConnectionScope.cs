@@ -1,6 +1,5 @@
 using System.ComponentModel;
 using System.Runtime.InteropServices;
-using Shirobot.Plugin.MyList.Webdav;
 
 namespace Shirobot.Plugin.MyList.Webdav.Infrastructure;
 
@@ -15,7 +14,7 @@ internal sealed class SmbConnectionScope : IDisposable
         _connected = connected;
     }
 
-    public static SmbConnectionScope ConnectIfNeeded(VirtualWebDavConfig config)
+    public static SmbConnectionScope ConnectIfNeeded(MyListConfig config)
     {
         if (string.IsNullOrWhiteSpace(config.SmbWriteRoot))
         {

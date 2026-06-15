@@ -1,6 +1,6 @@
-namespace Shirobot.Plugin.MyList.Webdav;
+namespace Shirobot.Plugin.MyList;
 
-public sealed class VirtualWebDavConfig
+public sealed class MyListConfig
 {
     public const string UploadModeAuto = "auto";
     public const string UploadModeBase64 = "base64";
@@ -10,7 +10,7 @@ public sealed class VirtualWebDavConfig
 
     public bool Enabled { get; set; } = true;
 
-    public string ListenPrefix { get; set; } = "http://+:19089/";
+    public string ListenPrefix { get; set; } = "http://127.0.0.1:19089/";
 
     public List<string> ListenPrefixes { get; set; } = [];
 
