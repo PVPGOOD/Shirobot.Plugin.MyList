@@ -1,3 +1,4 @@
+using ShiroBot.Model.QQ;
 using ShiroBot.SDK.Abstractions;
 using ShiroBot.SDK.Core;
 using ShiroBot.SDK.Models;
@@ -14,7 +15,7 @@ namespace Shirobot.Plugin.MyList;
     "MyList",
     Name = "MyList",
     Description = "Shirobot.Plugin.MyList",
-    Version = "1.1.0",
+    Version = "1.3.0",
     GithubRepo = "PVPGOOD/Shirobot.Plugin.MyList",
     IsPluginSingleFile = true,
     SharedAssemblies = "ShiroBot.Model.QQ")]
@@ -35,8 +36,16 @@ public sealed class MyListPlugin : PluginBase
         Context.Config.Save(_config);
         BotLog.Info($"Shirobot.Plugin.MyList 配置已加载: enabled={_config.Enabled}, listen={string.Join(", ", _config.GetListenPrefixes())}, upload_mode={_config.GetNormalizedUploadMode()}, file_transfer_mode={_config.GetNormalizedFileTransferMode()}, upload_base64_threshold_mb={_config.UploadBase64ThresholdMb}, verbose_logging={_config.VerboseLogging}");
 
-        _webDavMapper = new GroupFileWebDavMapper(Context, _config);
-        _diagnostics = new WebDavDiagnostics(Context, _webDavMapper);
+        var qqSystem = Context.GetAdapterExtension<IQSystemApi>();
+        var qqFile = Context.GetAdapterExtension<IQFileApi>();
+        if (qqSystem is null || qqFile is null)
+        {
+            BotLog.Warning("当前适配器不提供 QQ 群文件能力(IQSystemApi/IQFileApi),MyList 插件已跳过初始化。");
+            return Task.CompletedTask;
+        }
+
+        _webDavMapper = new GroupFileWebDavMapper(qqSystem, qqFile, _config);
+        _diagnostics = new WebDavDiagnostics(qqFile, _webDavMapper);
 
         GroupCommands.MapExact("#webdav", HandleFilesAsync);
         GroupCommands.MapExact("#webdav files", HandleFilesAsync);

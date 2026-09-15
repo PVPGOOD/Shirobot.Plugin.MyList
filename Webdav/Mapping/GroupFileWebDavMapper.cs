@@ -1,5 +1,4 @@
 using ShiroBot.Model.QQ;
-using ShiroBot.SDK.Plugin;
 using Shirobot.Plugin.MyList.Webdav.Diagnostics;
 using Shirobot.Plugin.MyList.Webdav.Infrastructure;
 using Shirobot.Plugin.MyList.Webdav.Models;
@@ -8,14 +7,16 @@ namespace Shirobot.Plugin.MyList.Webdav.Mapping;
 
 internal sealed class GroupFileWebDavMapper
 {
-    private readonly IBotContext _context;
+    private readonly IQSystemApi _system;
+    private readonly IQFileApi _file;
     private readonly MyListConfig _config;
     private readonly WebDavLog _log;
     private readonly long _base64ThresholdBytes;
 
-    public GroupFileWebDavMapper(IBotContext context, MyListConfig config)
+    public GroupFileWebDavMapper(IQSystemApi system, IQFileApi file, MyListConfig config)
     {
-        _context = context;
+        _system = system;
+        _file = file;
         _config = config;
         _log = new WebDavLog(config);
         _base64ThresholdBytes = Math.Max(1, _config.UploadBase64ThresholdMb) * 1024L * 1024L;
@@ -113,7 +114,7 @@ internal sealed class GroupFileWebDavMapper
             return null;
         }
 
-        var downloadUrl = await GetFileApi().GetGroupFileDownloadUrlAsync(resolution.Item.GroupId.Value, resolution.Item.RemoteId);
+        var downloadUrl = await _file.GetGroupFileDownloadUrlAsync(resolution.Item.GroupId.Value, resolution.Item.RemoteId);
         var finalUrl = WebDavPathHelper.EnsureFileNameInDownloadUrl(downloadUrl, resolution.Item.Name);
         return new WebDavFileContent(finalUrl, resolution.Item.ContentType);
     }
@@ -203,13 +204,13 @@ internal sealed class GroupFileWebDavMapper
         if (existing is { Exists: true, Item.IsDirectory: false } && !string.IsNullOrWhiteSpace(existing.Item.RemoteId))
         {
             _log.Trace($"WebDAV Mapper 上传覆盖: groupId={parentResolution.Item.GroupId.Value}, oldFileId={existing.Item.RemoteId}");
-            await GetFileApi().DeleteGroupFileAsync(parentResolution.Item.GroupId.Value, existing.Item.RemoteId);
+            await _file.DeleteGroupFileAsync(parentResolution.Item.GroupId.Value, existing.Item.RemoteId);
         }
 
         try
         {
             _log.Trace($"WebDAV Mapper 调用 UploadGroupFileAsync: groupId={parentResolution.Item.GroupId.Value}, fileName={fileName}, parentFolderId={parentResolution.Item.RemoteId ?? "/"}, scheme={transport}");
-            await GetFileApi().UploadGroupFileAsync(
+            await _file.UploadGroupFileAsync(
                 parentResolution.Item.GroupId.Value,
                 fileUri,
                 fileName,
@@ -268,7 +269,7 @@ internal sealed class GroupFileWebDavMapper
         }
 
         _log.Trace($"WebDAV Mapper 调用 CreateGroupFolderAsync: groupId={parentResolution.Item.GroupId.Value}, folderName={folderName}");
-        await GetFileApi().CreateGroupFolderAsync(parentResolution.Item.GroupId.Value, folderName);
+        await _file.CreateGroupFolderAsync(parentResolution.Item.GroupId.Value, folderName);
         WebDavLog.Info($"WebDAV Mapper 创建目录完成: path={normalizedPath}, groupId={parentResolution.Item.GroupId.Value}, folderName={folderName}");
         return WebDavWriteResult.Success(created: true);
     }
@@ -302,13 +303,13 @@ internal sealed class GroupFileWebDavMapper
             }
 
             _log.Trace($"WebDAV Mapper 调用 DeleteGroupFolderAsync: groupId={resolution.Item.GroupId.Value}, folderId={resolution.Item.RemoteId}");
-            await GetFileApi().DeleteGroupFolderAsync(resolution.Item.GroupId.Value, resolution.Item.RemoteId);
+            await _file.DeleteGroupFolderAsync(resolution.Item.GroupId.Value, resolution.Item.RemoteId);
             WebDavLog.Info($"WebDAV Mapper 删除文件夹完成: groupId={resolution.Item.GroupId.Value}, folderId={resolution.Item.RemoteId}");
             return WebDavWriteResult.Success(created: false);
         }
 
         _log.Trace($"WebDAV Mapper 调用 DeleteGroupFileAsync: groupId={resolution.Item.GroupId.Value}, fileId={resolution.Item.RemoteId}");
-        await GetFileApi().DeleteGroupFileAsync(resolution.Item.GroupId.Value, resolution.Item.RemoteId);
+        await _file.DeleteGroupFileAsync(resolution.Item.GroupId.Value, resolution.Item.RemoteId);
         WebDavLog.Info($"WebDAV Mapper 删除文件完成: groupId={resolution.Item.GroupId.Value}, fileId={resolution.Item.RemoteId}");
         return WebDavWriteResult.Success(created: false);
     }
@@ -356,7 +357,7 @@ internal sealed class GroupFileWebDavMapper
                 return WebDavMoveResult.CreateConflict("不能覆盖目标目录。");
             }
 
-            await GetFileApi().DeleteGroupFileAsync(destination.Item.GroupId!.Value, destination.Item.RemoteId!);
+            await _file.DeleteGroupFileAsync(destination.Item.GroupId!.Value, destination.Item.RemoteId!);
         }
 
         var sourceParentPath = WebDavPathHelper.GetParentPath(normalizedSourcePath);
@@ -377,7 +378,7 @@ internal sealed class GroupFileWebDavMapper
             }
 
             _log.Trace($"WebDAV Mapper 调用 RenameGroupFolderAsync: groupId={source.Item.GroupId.Value}, folderId={source.Item.RemoteId}, newName={destinationName}");
-            await GetFileApi().RenameGroupFolderAsync(source.Item.GroupId.Value, source.Item.RemoteId, destinationName);
+            await _file.RenameGroupFolderAsync(source.Item.GroupId.Value, source.Item.RemoteId, destinationName);
             WebDavLog.Info($"WebDAV Mapper 文件夹移动完成: source={normalizedSourcePath}, destination={normalizedDestinationPath}");
             return WebDavMoveResult.Success(created: !destination.Exists);
         }
@@ -385,13 +386,13 @@ internal sealed class GroupFileWebDavMapper
         if (!string.Equals(sourceParentFolderId, destinationParentFolderId, StringComparison.OrdinalIgnoreCase))
         {
             _log.Trace($"WebDAV Mapper 调用 MoveGroupFileAsync: groupId={source.Item.GroupId.Value}, fileId={source.Item.RemoteId}, sourceParentFolderId={sourceParentFolderId}, destinationParentFolderId={destinationParentFolderId}");
-            await GetFileApi().MoveGroupFileAsync(source.Item.GroupId.Value, source.Item.RemoteId, destinationParentFolderId, sourceParentFolderId);
+            await _file.MoveGroupFileAsync(source.Item.GroupId.Value, source.Item.RemoteId, destinationParentFolderId, sourceParentFolderId);
         }
 
         if (!string.Equals(source.Item.Name, destinationName, StringComparison.Ordinal))
         {
             _log.Trace($"WebDAV Mapper 调用 RenameGroupFileAsync: groupId={source.Item.GroupId.Value}, fileId={source.Item.RemoteId}, newName={destinationName}, parentFolderId={destinationParentFolderId}");
-            await GetFileApi().RenameGroupFileAsync(source.Item.GroupId.Value, source.Item.RemoteId, destinationName, destinationParentFolderId);
+            await _file.RenameGroupFileAsync(source.Item.GroupId.Value, source.Item.RemoteId, destinationName, destinationParentFolderId);
         }
 
         WebDavLog.Info($"WebDAV Mapper 文件移动完成: source={normalizedSourcePath}, destination={normalizedDestinationPath}");
@@ -418,7 +419,7 @@ internal sealed class GroupFileWebDavMapper
 
     private async Task<IReadOnlyList<WebDavItem>> GetFolderChildrenAsync(long groupId, string groupRootPath, string folderId)
     {
-        var result = await GetFileApi().GetGroupFilesAsync(groupId, folderId);
+        var result = await _file.GetGroupFilesAsync(groupId, folderId);
         var prefix = await BuildFolderPathPrefixAsync(groupRootPath, groupId, folderId);
 
         var folders = result.Folders
@@ -428,7 +429,7 @@ internal sealed class GroupFileWebDavMapper
                 folder.FolderName,
                 groupId,
                 folder.FolderId,
-                folder.LastModifiedTime))
+                folder.LastModifiedTime ?? DateTimeOffset.MinValue))
             .ToList();
 
         var files = result.Files
@@ -440,7 +441,7 @@ internal sealed class GroupFileWebDavMapper
                 file.FileId,
                 file.FileSize,
                 WebDavPathHelper.GuessContentType(file.FileName),
-                file.UploadedTime ?? DateTimeOffset.UtcNow))
+                file.UploadedTime ?? DateTimeOffset.MinValue))
             .ToList();
 
         return folders.Concat(files).ToList();
@@ -478,7 +479,7 @@ internal sealed class GroupFileWebDavMapper
 
     private async Task<List<string>> ResolveFolderSegmentsAsync(long groupId, string targetFolderId, string currentFolderId)
     {
-        var result = await GetFileApi().GetGroupFilesAsync(groupId, currentFolderId);
+        var result = await _file.GetGroupFilesAsync(groupId, currentFolderId);
         foreach (var folder in result.Folders)
         {
             if (string.Equals(folder.FolderId, targetFolderId, StringComparison.OrdinalIgnoreCase))
@@ -499,19 +500,11 @@ internal sealed class GroupFileWebDavMapper
 
     private async Task<IReadOnlyList<QGroup>> GetGroupsAsync()
     {
-        return await GetSystemApi().GetGroupListAsync();
+        return await _system.GetGroupListAsync();
     }
 
     private static string BuildGroupSegment(QGroup group) =>
         WebDavPathHelper.SanitizeSegment(group.GroupName);
-
-    private IQFileApi GetFileApi() =>
-        _context.GetAdapterExtension<IQFileApi>()
-        ?? throw new NotSupportedException("The active adapter does not provide the QQ group-file API.");
-
-    private IQSystemApi GetSystemApi() =>
-        _context.GetAdapterExtension<IQSystemApi>()
-        ?? throw new NotSupportedException("The active adapter does not provide the QQ system API.");
 
     private static string BuildTempFilePath(string fileName)
     {

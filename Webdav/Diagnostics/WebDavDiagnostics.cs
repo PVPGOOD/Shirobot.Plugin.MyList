@@ -1,10 +1,9 @@
 using ShiroBot.Model.QQ;
-using ShiroBot.SDK.Plugin;
 using Shirobot.Plugin.MyList.Webdav.Mapping;
 
 namespace Shirobot.Plugin.MyList.Webdav.Diagnostics;
 
-internal sealed class WebDavDiagnostics(IBotContext context, GroupFileWebDavMapper mapper)
+internal sealed class WebDavDiagnostics(IQFileApi file, GroupFileWebDavMapper mapper)
 {
     public async Task<string> BuildFileListTextAsync()
     {
@@ -31,7 +30,7 @@ internal sealed class WebDavDiagnostics(IBotContext context, GroupFileWebDavMapp
 
         try
         {
-            var result = await GetFileApi().GetGroupFilesAsync(groupId);
+            var result = await file.GetGroupFilesAsync(groupId, "/");
             lines.Add($"folders = {result.Folders.Count}");
             lines.Add($"files = {result.Files.Count}");
 
@@ -44,7 +43,7 @@ internal sealed class WebDavDiagnostics(IBotContext context, GroupFileWebDavMapp
         catch (Exception ex)
         {
             lines.Add($"probe_error = {ex.GetType().Name}: {ex.Message}");
-            lines.Add("当前 adapter 很可能还没有实现 IFileService。");
+            lines.Add("当前 adapter 很可能还没有实现 IQFileApi。");
             return string.Join('\n', lines);
         }
     }
@@ -69,7 +68,7 @@ internal sealed class WebDavDiagnostics(IBotContext context, GroupFileWebDavMapp
         try
         {
             var firstFile = files[0];
-            var downloadUrl = await GetFileApi().GetGroupFileDownloadUrlAsync(groupId, firstFile.FileId);
+            var downloadUrl = await file.GetGroupFileDownloadUrlAsync(groupId, firstFile.FileId);
             lines.Add($"first_download = {downloadUrl}");
         }
         catch (Exception ex)
@@ -78,7 +77,4 @@ internal sealed class WebDavDiagnostics(IBotContext context, GroupFileWebDavMapp
         }
     }
 
-    private IQFileApi GetFileApi() =>
-        context.GetAdapterExtension<IQFileApi>()
-        ?? throw new NotSupportedException("The active adapter does not provide the QQ group-file API.");
 }
