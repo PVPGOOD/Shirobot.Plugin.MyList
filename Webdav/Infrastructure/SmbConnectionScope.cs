@@ -14,7 +14,7 @@ internal sealed class SmbConnectionScope : IDisposable
         _connected = connected;
     }
 
-    public static SmbConnectionScope ConnectIfNeeded(VirtualWebDavConfig config)
+    public static SmbConnectionScope ConnectIfNeeded(MyListConfig config)
     {
         if (string.IsNullOrWhiteSpace(config.SmbWriteRoot) || !config.SmbWriteRoot.TrimStart().StartsWith(@"\\", StringComparison.Ordinal) || string.IsNullOrWhiteSpace(config.SmbUsername) && string.IsNullOrWhiteSpace(config.SmbPassword))
         {

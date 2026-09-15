@@ -7,13 +7,13 @@ namespace Shirobot.Plugin.MyList.Webdav.Server;
 
 internal sealed class VirtualWebDavServer : IDisposable
 {
-    private readonly VirtualWebDavConfig _config;
+    private readonly MyListConfig _config;
     private readonly GroupFileWebDavMapper _mapper;
     private readonly WebDavLog _log;
     private readonly HttpListener _listener = new();
     private CancellationTokenSource? _cts;
 
-    public VirtualWebDavServer(VirtualWebDavConfig config, GroupFileWebDavMapper mapper)
+    public VirtualWebDavServer(MyListConfig config, GroupFileWebDavMapper mapper)
     {
         _config = config;
         _mapper = mapper;
@@ -83,7 +83,7 @@ internal sealed class VirtualWebDavServer : IDisposable
                 $"WebDAV 请求进入: method={context.Request.HttpMethod}, path={DecodeRequestPath(context.Request)}, rawUrl={context.Request.RawUrl ?? "<null>"}, userAgent={context.Request.UserAgent ?? "<null>"}, contentLength={context.Request.ContentLength64}, contentType={context.Request.ContentType ?? "<null>"}");
             if (!IsAuthorized(context.Request))
             {
-                _log.Warning(
+                WebDavLog.Warning(
                     $"WebDAV 认证失败: method={context.Request.HttpMethod}, path={DecodeRequestPath(context.Request)}, userAgent={context.Request.UserAgent ?? "<null>"}");
                 context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
                 context.Response.AddHeader("WWW-Authenticate", $"Basic realm=\"{_config.Realm}\"");
@@ -116,7 +116,7 @@ internal sealed class VirtualWebDavServer : IDisposable
                     await HandleMoveAsync(context);
                     break;
                 default:
-                    _log.Warning(
+                    WebDavLog.Warning(
                         $"WebDAV 不支持的方法: method={context.Request.HttpMethod}, path={DecodeRequestPath(context.Request)}");
                     WebDavResponseWriter.WriteStatus(context.Response, HttpStatusCode.MethodNotAllowed);
                     break;
@@ -124,7 +124,7 @@ internal sealed class VirtualWebDavServer : IDisposable
         }
         catch (Exception ex)
         {
-            _log.Error($"WebDAV 请求处理失败: {ex.Message}");
+            WebDavLog.Error($"WebDAV 请求处理失败: {ex.Message}");
             await WebDavResponseWriter.WriteInternalServerErrorAsync(context.Response);
         }
     }
@@ -182,7 +182,7 @@ internal sealed class VirtualWebDavServer : IDisposable
         var requestPath = DecodeRequestPath(context.Request);
         _log.Trace($"WebDAV PUT 请求: path={requestPath}, contentLength={context.Request.ContentLength64}, contentType={context.Request.ContentType ?? "<null>"}");
         var result = await _mapper.PutFileAsync(requestPath, context.Request.InputStream, cancellationToken);
-        _log.Info(
+        WebDavLog.Info(
             $"WebDAV PUT 结果: path={requestPath}, succeeded={result.Succeeded}, created={result.Created}, alreadyExists={result.AlreadyExists}, notFound={result.NotFound}, conflict={result.Conflict}, error={result.ErrorMessage ?? "<null>"}");
         var successStatus = result.Created ? (int)HttpStatusCode.Created : (int)HttpStatusCode.NoContent;
         WebDavResponseWriter.WriteWriteResult(context.Response, result, successStatus, (int)HttpStatusCode.PreconditionFailed);
@@ -193,7 +193,7 @@ internal sealed class VirtualWebDavServer : IDisposable
         var requestPath = DecodeRequestPath(context.Request);
         _log.Trace($"WebDAV MKCOL 请求: path={requestPath}");
         var result = await _mapper.CreateFolderAsync(requestPath);
-        _log.Info(
+        WebDavLog.Info(
             $"WebDAV MKCOL 结果: path={requestPath}, succeeded={result.Succeeded}, created={result.Created}, alreadyExists={result.AlreadyExists}, notFound={result.NotFound}, conflict={result.Conflict}, error={result.ErrorMessage ?? "<null>"}");
         WebDavResponseWriter.WriteWriteResult(context.Response, result, (int)HttpStatusCode.Created, (int)HttpStatusCode.MethodNotAllowed);
     }
@@ -203,7 +203,7 @@ internal sealed class VirtualWebDavServer : IDisposable
         var requestPath = DecodeRequestPath(context.Request);
         _log.Trace($"WebDAV DELETE 请求: path={requestPath}");
         var result = await _mapper.DeleteAsync(requestPath);
-        _log.Info(
+        WebDavLog.Info(
             $"WebDAV DELETE 结果: path={requestPath}, succeeded={result.Succeeded}, created={result.Created}, alreadyExists={result.AlreadyExists}, notFound={result.NotFound}, conflict={result.Conflict}, error={result.ErrorMessage ?? "<null>"}");
         WebDavResponseWriter.WriteWriteResult(context.Response, result, (int)HttpStatusCode.NoContent, (int)HttpStatusCode.NoContent);
     }
@@ -222,7 +222,7 @@ internal sealed class VirtualWebDavServer : IDisposable
         var overwrite = !string.Equals(context.Request.Headers["Overwrite"], "F", StringComparison.OrdinalIgnoreCase);
         _log.Trace($"WebDAV MOVE 请求: source={sourcePath}, destination={destinationPath}, overwrite={overwrite}");
         var result = await _mapper.MoveAsync(sourcePath, destinationPath, overwrite);
-        _log.Info(
+        WebDavLog.Info(
             $"WebDAV MOVE 结果: source={sourcePath}, destination={destinationPath}, succeeded={result.Succeeded}, created={result.Created}, alreadyExists={result.AlreadyExists}, notFound={result.NotFound}, conflict={result.Conflict}, forbidden={result.Forbidden}, error={result.ErrorMessage ?? "<null>"}");
 
         if (result.Succeeded)
@@ -306,7 +306,7 @@ internal sealed class VirtualWebDavServer : IDisposable
         return WebDavPathHelper.NormalizePath(Uri.UnescapeDataString(destination));
     }
 
-    private static IReadOnlyList<string> GetNormalizedListenPrefixes(VirtualWebDavConfig config) =>
+    private static IReadOnlyList<string> GetNormalizedListenPrefixes(MyListConfig config) =>
         config.GetListenPrefixes()
             .Where(prefix => !string.IsNullOrWhiteSpace(prefix))
             .Select(NormalizePrefix)

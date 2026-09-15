@@ -1,6 +1,6 @@
-namespace Shirobot.Plugin.MyList.Webdav;
+namespace Shirobot.Plugin.MyList;
 
-public sealed class VirtualWebDavConfig
+public sealed class MyListConfig
 {
     public const string UploadModeAuto = "auto";
     public const string UploadModeBase64 = "base64";

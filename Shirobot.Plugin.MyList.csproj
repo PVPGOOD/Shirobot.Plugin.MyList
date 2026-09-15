@@ -6,10 +6,11 @@
         <RootNamespace>Shirobot.Plugin.MyList</RootNamespace>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <DefaultItemExcludes>$(DefaultItemExcludes);**/bin/**;**/obj/**</DefaultItemExcludes>
         <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
         <ShiroBotPluginPackagingEnabled>true</ShiroBotPluginPackagingEnabled>
-        <ShiroBotPluginSharedAssemblies>ShiroBot.Model.QQ;ShiroBot.Model.Discord;ShiroBot.Model.Telegram</ShiroBotPluginSharedAssemblies>
-        <HostProjectRoot>$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)\..\..\..\ShiroBot\Core\'))</HostProjectRoot>
+        <ShiroBotPluginSharedAssemblies>ShiroBot.Model.QQ</ShiroBotPluginSharedAssemblies>
+        <HostProjectRoot>$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)\..\..\ShiroBot\Core\'))</HostProjectRoot>
         <HostExe>$(HostProjectRoot)bin\Debug\$(TargetFramework)\ShiroBot.exe</HostExe>
         <HostPluginDir>$(HostProjectRoot)bin\Debug\$(TargetFramework)\plugins\$(AssemblyName)\</HostPluginDir>
         <Configurations>Debug;DebugPlugin;DebugAdapter;DebugAll;Release</Configurations>
@@ -29,6 +30,14 @@
         </Content>
     </ItemGroup>
 
+    <Target Name="RemoveHostModelAssembliesFromPublish"
+            AfterTargets="RemovePublishedShiroBotPluginDependencyFile">
+        <ItemGroup>
+            <HostModelPublishAsset Include="$(PublishDir)ShiroBot.Model.*.dll;$(PublishDir)ShiroBot.Model.*.pdb" />
+        </ItemGroup>
+        <Delete Files="@(HostModelPublishAsset)" />
+    </Target>
+
     <Target Name="CopyPluginToHost"
             AfterTargets="Build"
             Condition="'$(Configuration)'=='Debug' or '$(Configuration)'=='DebugPlugin' or '$(Configuration)'=='DebugAll'">
@@ -43,5 +52,4 @@
               DestinationFiles="@(PluginDebugOutput->'$(HostPluginDir)%(RecursiveDir)%(Filename)%(Extension)')"
               SkipUnchangedFiles="true" />
     </Target>
-
 </Project>

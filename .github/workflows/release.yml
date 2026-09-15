@@ -1,0 +1,64 @@
+name: Build Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: "Release tag name, for example v1.0.0"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+env:
+  PROJECT_FILE: Shirobot.Plugin.MyList.csproj
+  PUBLISH_DIR: bin/Release/net10.0/publish
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore
+        run: dotnet restore "$PROJECT_FILE"
+
+      - name: Publish
+        run: dotnet publish "$PROJECT_FILE" --configuration Release --no-restore
+
+      - name: Verify and collect plugin DLL
+        shell: bash
+        run: |
+          PROJECT="$(basename "$PROJECT_FILE" .csproj)"
+          PLUGIN_DLL="$PUBLISH_DIR/$PROJECT.dll"
+          if [ ! -f "$PLUGIN_DLL" ]; then
+            echo "Plugin DLL not found: $PLUGIN_DLL"
+            ls -la "$PUBLISH_DIR"
+            exit 1
+          fi
+          shopt -s nullglob
+          PUBLISHED_DLLS=("$PUBLISH_DIR"/*.dll)
+          if [ "${#PUBLISHED_DLLS[@]}" -ne 1 ] || [ "$(basename "${PUBLISHED_DLLS[0]}")" != "$PROJECT.dll" ]; then
+            printf 'Unexpected managed DLLs in publish output:\n%s\n' "${PUBLISHED_DLLS[@]}"
+            exit 1
+          fi
+          mkdir -p release
+          cp "$PLUGIN_DLL" release/
+
+      - name: Upload DLL to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event_name == 'workflow_dispatch' && inputs.tag_name || github.ref_name }}
+          target_commitish: ${{ github.sha }}
+          files: release/*.dll

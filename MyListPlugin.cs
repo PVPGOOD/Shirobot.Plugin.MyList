@@ -2,7 +2,6 @@ using ShiroBot.SDK.Abstractions;
 using ShiroBot.SDK.Core;
 using ShiroBot.SDK.Models;
 using ShiroBot.SDK.Plugin;
-using Shirobot.Plugin.MyList.Webdav;
 using Shirobot.Plugin.MyList.Webdav.Diagnostics;
 using Shirobot.Plugin.MyList.Webdav.Mapping;
 using Shirobot.Plugin.MyList.Webdav.Server;
@@ -12,27 +11,27 @@ using Shirobot.Plugin.MyList.Webdav.Server;
 namespace Shirobot.Plugin.MyList;
 
 [BotPlugin(
-    "Shirobot.Plugin.MyList",
-    Name = "Shirobot WebDAV 插件",
-    Version = "1.0.0",
-    Description = "将群文件转为WebDAV服务器,方便在电脑上直接访问和管理群文件,支持上传下载和在线预览",
-    Category = PluginCategory.Integration,
+    "MyList",
+    Name = "MyList",
+    Description = "Shirobot.Plugin.MyList",
+    Version = "1.1.0",
+    GithubRepo = "PVPGOOD/Shirobot.Plugin.MyList",
     IsPluginSingleFile = true,
     SharedAssemblies = "ShiroBot.Model.QQ")]
-public sealed class ShirobotPlugin : PluginBase
+public sealed class MyListPlugin : PluginBase
 {
-    private VirtualWebDavConfig _config = new();
+    private MyListConfig _config = new();
     private VirtualWebDavServer? _server;
     private GroupFileWebDavMapper? _webDavMapper;
     private WebDavDiagnostics? _diagnostics;
 
-    public override string Name => "MyList";
+    public override string Name => "Shirobot.Plugin.MyList";
 
     protected override Task LoadAsync()
     {
         BotLog.Info($"Shirobot.Plugin.MyList 开始初始化 config = {Context.Config.ConfigPath}");
 
-        _config = Context.Config.Load<VirtualWebDavConfig>();
+        _config = Context.Config.Load<MyListConfig>();
         Context.Config.Save(_config);
         BotLog.Info($"Shirobot.Plugin.MyList 配置已加载: enabled={_config.Enabled}, listen={string.Join(", ", _config.GetListenPrefixes())}, upload_mode={_config.GetNormalizedUploadMode()}, file_transfer_mode={_config.GetNormalizedFileTransferMode()}, upload_base64_threshold_mb={_config.UploadBase64ThresholdMb}, verbose_logging={_config.VerboseLogging}");
 

@@ -2,8 +2,8 @@ enabled = true
 listen_prefix = "http://+:19089/"
 listen_prefixes = []
 require_authentication = true
-username = "openlist"
-password = "openlist"
+username = "example-user"
+password = "change-me-strong-password"
 realm = "ShiroBot Virtual WebDAV"
 welcome_text = "Hello from ShiroBot virtual WebDAV."
 verbose_logging = false
@@ -27,18 +27,18 @@ file_transfer_mode = "smb"
 # 仅在 file_transfer_mode = "smb" 时需要配置，direct 模式可忽略。
 # 可使用两种形式：
 # - 已挂载盘符路径，例如 "T:\\temp\\upload"
-# - UNC 路径，例如 "\\\\172.24.206.57\\ShirobotOpenList\\temp\\upload"
+# - UNC 路径，例如 "\\\\nas\\ShirobotOpenList\\temp\\upload"
 # 无论使用哪种形式，当前运行 ShiroBot 的账号都必须对该目录有创建目录、写入文件、删除文件的权限。
-smb_write_root = "T:\\temp\\upload"
+smb_write_root = ""
 
 # smb_milky_root:
 # 同一份 SMB 文件在 Milky 机器上的本地路径映射。
 # 仅在 file_transfer_mode = "smb" 时需要配置，direct 模式可忽略
-smb_milky_root = "C:\\ShirobotOpenList\\temp\\upload"
+smb_milky_root = ""
 
 # smb_username / smb_password:
 # SMB 共享访问凭据。仅在 file_transfer_mode = "smb" 且使用 UNC 路径时，当前进程账号无法直接访问共享的情况下需要配置。
 # 如果 smb_write_root 使用已挂载盘符，通常不需要再填写这两个字段。
 # 用户名可直接写 "server\\user" 或 "user"。
-smb_username = "172.24.206.57\\justme"
-smb_password = "awdawdawd123"
+smb_username = "EXAMPLE\\user"
+smb_password = "change-me-smb-password"
