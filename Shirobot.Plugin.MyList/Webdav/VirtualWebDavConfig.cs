@@ -10,7 +10,7 @@ public sealed class VirtualWebDavConfig
 
     public bool Enabled { get; set; } = true;
 
-    public string ListenPrefix { get; set; } = "http://+:19089/";
+    public string ListenPrefix { get; set; } = "http://127.0.0.1:19089/";
 
     public List<string> ListenPrefixes { get; set; } = [];
 
@@ -21,8 +21,6 @@ public sealed class VirtualWebDavConfig
     public string Password { get; set; } = "openlist";
 
     public string Realm { get; set; } = "ShiroBot Virtual WebDAV";
-
-    public string WelcomeText { get; set; } = "Hello from ShiroBot virtual WebDAV.";
 
     public bool VerboseLogging { get; set; } = false;
 
@@ -46,17 +44,12 @@ public sealed class VirtualWebDavConfig
 
     public IReadOnlyList<string> GetListenPrefixes()
     {
-        if (ListenPrefixes.Count > 0)
-        {
-            return ListenPrefixes;
-        }
-
-        return [ListenPrefix];
+        return ListenPrefixes.Count > 0 ? ListenPrefixes : [ListenPrefix];
     }
 
     public string GetNormalizedUploadMode()
     {
-        var mode = UploadMode?.Trim().ToLowerInvariant();
+        var mode = UploadMode.Trim().ToLowerInvariant();
         return mode switch
         {
             UploadModeBase64 => UploadModeBase64,
@@ -67,7 +60,7 @@ public sealed class VirtualWebDavConfig
 
     public string GetNormalizedFileTransferMode()
     {
-        var mode = FileTransferMode?.Trim().ToLowerInvariant();
+        var mode = FileTransferMode.Trim().ToLowerInvariant();
         return mode switch
         {
             FileTransferSmb => FileTransferSmb,

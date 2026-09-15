@@ -1,11 +1,10 @@
-using ShiroBot.Model.Common;
+using ShiroBot.Model.QQ;
 using ShiroBot.SDK.Plugin;
-using Shirobot.Plugin.MyList.Webdav;
 using Shirobot.Plugin.MyList.Webdav.Mapping;
 
 namespace Shirobot.Plugin.MyList.Webdav.Diagnostics;
 
-internal sealed class WebDavDiagnostics(IBotContext context, VirtualWebDavConfig config, GroupFileWebDavMapper mapper)
+internal sealed class WebDavDiagnostics(IBotContext context, GroupFileWebDavMapper mapper)
 {
     public async Task<string> BuildFileListTextAsync()
     {
@@ -32,7 +31,7 @@ internal sealed class WebDavDiagnostics(IBotContext context, VirtualWebDavConfig
 
         try
         {
-            var result = await context.File.GetGroupFilesAsync(groupId, "/");
+            var result = await GetFileApi().GetGroupFilesAsync(groupId);
             lines.Add($"folders = {result.Folders.Count}");
             lines.Add($"files = {result.Files.Count}");
 
@@ -50,23 +49,17 @@ internal sealed class WebDavDiagnostics(IBotContext context, VirtualWebDavConfig
         }
     }
 
-    private static void AppendFolderLines(List<string> lines, IReadOnlyList<GroupFolderEntity> folders)
+    private static void AppendFolderLines(List<string> lines, IReadOnlyList<QGroupFolder> folders)
     {
-        foreach (var folder in folders.Take(5))
-        {
-            lines.Add($"[DIR] {folder.FolderName} ({folder.FolderId})");
-        }
+        lines.AddRange(folders.Take(5).Select(folder => $"[DIR] {folder.FolderName} ({folder.FolderId})"));
     }
 
-    private static void AppendFileLines(List<string> lines, IReadOnlyList<GroupFileEntity> files)
+    private static void AppendFileLines(List<string> lines, IReadOnlyList<QGroupFile> files)
     {
-        foreach (var file in files.Take(5))
-        {
-            lines.Add($"[FILE] {file.FileName} ({file.FileId})");
-        }
+        lines.AddRange(files.Take(5).Select(file => $"[FILE] {file.FileName} ({file.FileId})"));
     }
 
-    private async Task AppendDownloadLineAsync(List<string> lines, long groupId, IReadOnlyList<GroupFileEntity> files)
+    private async Task AppendDownloadLineAsync(List<string> lines, long groupId, IReadOnlyList<QGroupFile> files)
     {
         if (files.Count == 0)
         {
@@ -76,12 +69,16 @@ internal sealed class WebDavDiagnostics(IBotContext context, VirtualWebDavConfig
         try
         {
             var firstFile = files[0];
-            var download = await context.File.GetGroupFileDownloadUrlAsync(groupId, firstFile.FileId);
-            lines.Add($"first_download = {download.DownloadUrl}");
+            var downloadUrl = await GetFileApi().GetGroupFileDownloadUrlAsync(groupId, firstFile.FileId);
+            lines.Add($"first_download = {downloadUrl}");
         }
         catch (Exception ex)
         {
             lines.Add($"download_error = {ex.GetType().Name}: {ex.Message}");
         }
     }
+
+    private IQFileApi GetFileApi() =>
+        context.GetAdapterExtension<IQFileApi>()
+        ?? throw new NotSupportedException("The active adapter does not provide the QQ group-file API.");
 }

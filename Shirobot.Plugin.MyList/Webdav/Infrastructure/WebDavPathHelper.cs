@@ -2,7 +2,7 @@ using System.Text.RegularExpressions;
 
 namespace Shirobot.Plugin.MyList.Webdav.Infrastructure;
 
-internal static class WebDavPathHelper
+internal static partial class WebDavPathHelper
 {
     public static string NormalizePath(string path)
     {
@@ -78,16 +78,17 @@ internal static class WebDavPathHelper
         }
 
         var encodedFileName = Uri.EscapeDataString(fileName);
-        if (Regex.IsMatch(downloadUrl, @"([?&])fname=", RegexOptions.IgnoreCase))
+        if (MyRegex().IsMatch(downloadUrl))
         {
-            return Regex.Replace(
-                downloadUrl,
-                @"([?&])fname=[^&]*",
-                $"$1fname={encodedFileName}",
-                RegexOptions.IgnoreCase);
+            return MyRegex1().Replace(downloadUrl, $"$1fname={encodedFileName}");
         }
 
         var separator = downloadUrl.Contains('?') ? "&" : "?";
         return downloadUrl + separator + "fname=" + encodedFileName;
     }
+
+    [GeneratedRegex(@"([?&])fname=", RegexOptions.IgnoreCase, "zh-CN")]
+    private static partial Regex MyRegex();
+    [GeneratedRegex(@"([?&])fname=[^&]*", RegexOptions.IgnoreCase, "zh-CN")]
+    private static partial Regex MyRegex1();
 }

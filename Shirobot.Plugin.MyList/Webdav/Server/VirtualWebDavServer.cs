@@ -1,7 +1,4 @@
 using System.Net;
-using ShiroBot.SDK;
-using ShiroBot.SDK.Abstractions;
-using Shirobot.Plugin.MyList.Webdav;
 using Shirobot.Plugin.MyList.Webdav.Diagnostics;
 using Shirobot.Plugin.MyList.Webdav.Infrastructure;
 using Shirobot.Plugin.MyList.Webdav.Mapping;
@@ -15,7 +12,6 @@ internal sealed class VirtualWebDavServer : IDisposable
     private readonly WebDavLog _log;
     private readonly HttpListener _listener = new();
     private CancellationTokenSource? _cts;
-    private Task? _loopTask;
 
     public VirtualWebDavServer(VirtualWebDavConfig config, GroupFileWebDavMapper mapper)
     {
@@ -33,7 +29,7 @@ internal sealed class VirtualWebDavServer : IDisposable
     {
         _cts = new CancellationTokenSource();
         _listener.Start();
-        _loopTask = Task.Run(() => RunAsync(_cts.Token));
+        Task.Run(() => RunAsync(_cts.Token));
     }
 
     public void Dispose()
@@ -48,6 +44,7 @@ internal sealed class VirtualWebDavServer : IDisposable
         }
         catch
         {
+            // ignored
         }
         finally
         {
