@@ -1,4 +1,4 @@
-using ShiroBot.QQ;
+using ShiroBot.Model.QQ;
 using Shirobot.Plugin.MyList.Webdav.Mapping;
 
 namespace Shirobot.Plugin.MyList.Webdav.Diagnostics;
@@ -50,18 +50,12 @@ internal sealed class WebDavDiagnostics(IQFileApi file, GroupFileWebDavMapper ma
 
     private static void AppendFolderLines(List<string> lines, IReadOnlyList<QGroupFolder> folders)
     {
-        foreach (var folder in folders.Take(5))
-        {
-            lines.Add($"[DIR] {folder.FolderName} ({folder.FolderId})");
-        }
+        lines.AddRange(folders.Take(5).Select(folder => $"[DIR] {folder.FolderName} ({folder.FolderId})"));
     }
 
     private static void AppendFileLines(List<string> lines, IReadOnlyList<QGroupFile> files)
     {
-        foreach (var file in files.Take(5))
-        {
-            lines.Add($"[FILE] {file.FileName} ({file.FileId})");
-        }
+        lines.AddRange(files.Take(5).Select(file => $"[FILE] {file.FileName} ({file.FileId})"));
     }
 
     private async Task AppendDownloadLineAsync(List<string> lines, long groupId, IReadOnlyList<QGroupFile> files)
@@ -82,4 +76,5 @@ internal sealed class WebDavDiagnostics(IQFileApi file, GroupFileWebDavMapper ma
             lines.Add($"download_error = {ex.GetType().Name}: {ex.Message}");
         }
     }
+
 }

@@ -1,4 +1,4 @@
-using ShiroBot.QQ;
+using ShiroBot.Model.QQ;
 using ShiroBot.SDK.Abstractions;
 using ShiroBot.SDK.Core;
 using ShiroBot.SDK.Models;
@@ -7,14 +7,18 @@ using Shirobot.Plugin.MyList.Webdav.Diagnostics;
 using Shirobot.Plugin.MyList.Webdav.Mapping;
 using Shirobot.Plugin.MyList.Webdav.Server;
 
+[assembly: ShiroBotApiCompatibility("0.8", "0.8")]
+
 namespace Shirobot.Plugin.MyList;
 
-[BotPlugin(id:"MyList", 
-    Name = "Mylist",
-    Description ="Shirobot.Plugin.MyList", 
-    Version = "1.1.0",
-    GithubRepo = "PVPGOOD/Shirobot.Plugin.MyList"
-    )]
+[BotPlugin(
+    "MyList",
+    Name = "MyList",
+    Description = "Shirobot.Plugin.MyList",
+    Version = "1.3.0",
+    GithubRepo = "PVPGOOD/Shirobot.Plugin.MyList",
+    IsPluginSingleFile = true,
+    SharedAssemblies = "ShiroBot.Model.QQ")]
 public sealed class MyListPlugin : PluginBase
 {
     private MyListConfig _config = new();
@@ -47,8 +51,6 @@ public sealed class MyListPlugin : PluginBase
         GroupCommands.MapExact("#webdav files", HandleFilesAsync);
         GroupCommands.MapExact("#groupfile probe", HandleGroupFileProbeAsync);
 
-        // Context.WebHost.RegisterFile("/webdav", _webDavMapper);
-        
         if (_config.Enabled)
         {
             try
@@ -83,9 +85,15 @@ public sealed class MyListPlugin : PluginBase
 
     private async Task HandleGroupFileProbeAsync(MessageEvent message)
     {
+        if (!long.TryParse(message.Channel.Id, out var groupId))
+        {
+            await Context.Message.ReplyAsync(message, "当前群 ID 不是有效的 QQ 群号。");
+            return;
+        }
+
         var result = _diagnostics is null
             ? "WebDAV 诊断器未初始化。"
-            : await _diagnostics.BuildGroupFileProbeTextAsync(long.Parse(message.Channel.Id));
+            : await _diagnostics.BuildGroupFileProbeTextAsync(groupId);
         await Context.Message.ReplyAsync(message, result);
     }
 

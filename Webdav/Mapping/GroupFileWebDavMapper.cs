@@ -1,4 +1,4 @@
-using ShiroBot.QQ;
+using ShiroBot.Model.QQ;
 using Shirobot.Plugin.MyList.Webdav.Diagnostics;
 using Shirobot.Plugin.MyList.Webdav.Infrastructure;
 using Shirobot.Plugin.MyList.Webdav.Models;

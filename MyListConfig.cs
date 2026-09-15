@@ -22,8 +22,6 @@ public sealed class MyListConfig
 
     public string Realm { get; set; } = "ShiroBot Virtual WebDAV";
 
-    public string WelcomeText { get; set; } = "Hello from ShiroBot virtual WebDAV.";
-
     public bool VerboseLogging { get; set; } = false;
 
     public long UploadTargetGroupId { get; set; } = 0;
@@ -46,17 +44,12 @@ public sealed class MyListConfig
 
     public IReadOnlyList<string> GetListenPrefixes()
     {
-        if (ListenPrefixes.Count > 0)
-        {
-            return ListenPrefixes;
-        }
-
-        return [ListenPrefix];
+        return ListenPrefixes.Count > 0 ? ListenPrefixes : [ListenPrefix];
     }
 
     public string GetNormalizedUploadMode()
     {
-        var mode = UploadMode?.Trim().ToLowerInvariant();
+        var mode = UploadMode.Trim().ToLowerInvariant();
         return mode switch
         {
             UploadModeBase64 => UploadModeBase64,
@@ -67,7 +60,7 @@ public sealed class MyListConfig
 
     public string GetNormalizedFileTransferMode()
     {
-        var mode = FileTransferMode?.Trim().ToLowerInvariant();
+        var mode = FileTransferMode.Trim().ToLowerInvariant();
         return mode switch
         {
             FileTransferSmb => FileTransferSmb,

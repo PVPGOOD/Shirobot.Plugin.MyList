@@ -16,17 +16,7 @@ internal sealed class SmbConnectionScope : IDisposable
 
     public static SmbConnectionScope ConnectIfNeeded(MyListConfig config)
     {
-        if (string.IsNullOrWhiteSpace(config.SmbWriteRoot))
-        {
-            return new SmbConnectionScope(null, false);
-        }
-
-        if (!config.SmbWriteRoot.TrimStart().StartsWith(@"\\", StringComparison.Ordinal))
-        {
-            return new SmbConnectionScope(null, false);
-        }
-
-        if (string.IsNullOrWhiteSpace(config.SmbUsername) && string.IsNullOrWhiteSpace(config.SmbPassword))
+        if (string.IsNullOrWhiteSpace(config.SmbWriteRoot) || !config.SmbWriteRoot.TrimStart().StartsWith(@"\\", StringComparison.Ordinal) || string.IsNullOrWhiteSpace(config.SmbUsername) && string.IsNullOrWhiteSpace(config.SmbPassword))
         {
             return new SmbConnectionScope(null, false);
         }

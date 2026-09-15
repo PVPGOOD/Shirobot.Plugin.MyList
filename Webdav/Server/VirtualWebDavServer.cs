@@ -12,7 +12,6 @@ internal sealed class VirtualWebDavServer : IDisposable
     private readonly WebDavLog _log;
     private readonly HttpListener _listener = new();
     private CancellationTokenSource? _cts;
-    private Task? _loopTask;
 
     public VirtualWebDavServer(MyListConfig config, GroupFileWebDavMapper mapper)
     {
@@ -30,7 +29,7 @@ internal sealed class VirtualWebDavServer : IDisposable
     {
         _cts = new CancellationTokenSource();
         _listener.Start();
-        _loopTask = Task.Run(() => RunAsync(_cts.Token));
+        Task.Run(() => RunAsync(_cts.Token));
     }
 
     public void Dispose()
