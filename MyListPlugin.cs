@@ -1,4 +1,4 @@
-using ShiroBot.Qq.Model;
+using ShiroBot.QQ;
 using ShiroBot.SDK.Abstractions;
 using ShiroBot.SDK.Core;
 using ShiroBot.SDK.Models;
@@ -32,11 +32,11 @@ public sealed class MyListPlugin : PluginBase
         Context.Config.Save(_config);
         BotLog.Info($"Shirobot.Plugin.MyList 配置已加载: enabled={_config.Enabled}, listen={string.Join(", ", _config.GetListenPrefixes())}, upload_mode={_config.GetNormalizedUploadMode()}, file_transfer_mode={_config.GetNormalizedFileTransferMode()}, upload_base64_threshold_mb={_config.UploadBase64ThresholdMb}, verbose_logging={_config.VerboseLogging}");
 
-        var qqSystem = Context.GetAdapterExtension<IQqSystemApi>();
-        var qqFile = Context.GetAdapterExtension<IQqFileApi>();
+        var qqSystem = Context.GetAdapterExtension<IQSystemApi>();
+        var qqFile = Context.GetAdapterExtension<IQFileApi>();
         if (qqSystem is null || qqFile is null)
         {
-            BotLog.Warning("当前适配器不提供 QQ 群文件能力(IQqSystemApi/IQqFileApi),MyList 插件已跳过初始化。");
+            BotLog.Warning("当前适配器不提供 QQ 群文件能力(IQSystemApi/IQFileApi),MyList 插件已跳过初始化。");
             return Task.CompletedTask;
         }
 

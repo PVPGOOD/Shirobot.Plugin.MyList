@@ -1,4 +1,4 @@
-using ShiroBot.Qq.Model;
+using ShiroBot.QQ;
 using Shirobot.Plugin.MyList.Webdav.Diagnostics;
 using Shirobot.Plugin.MyList.Webdav.Infrastructure;
 using Shirobot.Plugin.MyList.Webdav.Models;
@@ -7,13 +7,13 @@ namespace Shirobot.Plugin.MyList.Webdav.Mapping;
 
 internal sealed class GroupFileWebDavMapper
 {
-    private readonly IQqSystemApi _system;
-    private readonly IQqFileApi _file;
+    private readonly IQSystemApi _system;
+    private readonly IQFileApi _file;
     private readonly MyListConfig _config;
     private readonly WebDavLog _log;
     private readonly long _base64ThresholdBytes;
 
-    public GroupFileWebDavMapper(IQqSystemApi system, IQqFileApi file, MyListConfig config)
+    public GroupFileWebDavMapper(IQSystemApi system, IQFileApi file, MyListConfig config)
     {
         _system = system;
         _file = file;
@@ -498,12 +498,12 @@ internal sealed class GroupFileWebDavMapper
         return [];
     }
 
-    private async Task<IReadOnlyList<QqGroup>> GetGroupsAsync()
+    private async Task<IReadOnlyList<QGroup>> GetGroupsAsync()
     {
         return await _system.GetGroupListAsync();
     }
 
-    private static string BuildGroupSegment(QqGroup group) =>
+    private static string BuildGroupSegment(QGroup group) =>
         WebDavPathHelper.SanitizeSegment(group.GroupName);
 
     private static string BuildTempFilePath(string fileName)

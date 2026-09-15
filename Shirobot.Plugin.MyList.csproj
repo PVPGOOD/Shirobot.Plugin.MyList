@@ -23,7 +23,7 @@
         <ProjectReference Include="..\ShiroBot.SDK\ShiroBot.SDK.csproj">
             <Private>false</Private>
         </ProjectReference>
-        <ProjectReference Include="..\ShiroBot.Qq.Model\ShiroBot.Qq.Model.csproj">
+        <ProjectReference Include="..\ShiroBot.QQ\ShiroBot.QQ.csproj">
             <Private>false</Private>
         </ProjectReference>
         <PackageReference Include="ILRepack.Lib.MSBuild.Task" Version="2.0.44.1">
