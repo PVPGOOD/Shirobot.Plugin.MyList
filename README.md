@@ -14,7 +14,7 @@
 - `HostProjectRoot`
 - `HostExe`
 - `HostPluginDir`
-- `ProjectReference Include="..\\..\\Shirobot\\ShiroBot.SDK\\ShiroBot.SDK.csproj"`
+- SDK 通过 NuGet 包 `ShiroBot.SDK` 0.9.8 引用，无需配置本地 SDK 源码路径。`
 
 其中：
 
@@ -25,7 +25,7 @@
 
 1. 打开项目 [Shirobot.Plugin.MyList.csproj](C:\Users\JustMe\RiderProjects\Shirobot.Plugin.MyList\Shirobot.Plugin.MyList\Shirobot.Plugin.MyList.csproj)
 2. 修改插件代码或 `Assets/config.toml`
-3. 执行 `dotnet build`
+3. 先执行 `dotnet restore`，再执行 `dotnet build -c Release` 发布版本；开发调试可使用 `dotnet build -c Debug`。
 4. Debug 构建后插件会自动复制到 `ShiroBot` 的插件目录
 5. 启动 `ShiroBot.exe` 进行调试
 
@@ -38,3 +38,5 @@
 下载 `Shirobot` 后，将本项目构建产物放到其 `plugins/Shirobot.Plugin.MyList/` 目录下即可加载。
 
 本项目规范 `Shirobot` Plugin 开发流程 。
+
+运行要求：宿主最低版本 0.9.8，ShiroBot API 0.9.2；使用 ShiroBot.SDK 0.9.8 和 QQ Model 0.9.8。插件通过 IQGroupApi 的 GroupList 能力及 IQFileApi 探测群列表和群文件功能；群 ID 按原始字符串保存和传递。

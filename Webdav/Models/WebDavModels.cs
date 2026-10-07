@@ -4,7 +4,7 @@ internal sealed record WebDavItem(
     string Path,
     string Name,
     bool IsDirectory,
-    long? GroupId,
+    string? GroupId,
     string? RemoteId,
     long ContentLength,
     string ContentType,
@@ -16,7 +16,7 @@ internal sealed record WebDavItem(
     public static WebDavItem Directory(
         string path,
         string name,
-        long? groupId,
+        string? groupId,
         string remoteId,
         DateTimeOffset? lastModified = null) =>
         new(path, name, true, groupId, remoteId, 0, "httpd/unix-directory", lastModified ?? DateTimeOffset.UtcNow);
@@ -24,7 +24,7 @@ internal sealed record WebDavItem(
     public static WebDavItem File(
         string path,
         string name,
-        long groupId,
+        string groupId,
         string remoteId,
         long contentLength,
         string contentType,

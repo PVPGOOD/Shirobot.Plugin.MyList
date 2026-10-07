@@ -21,7 +21,7 @@ internal sealed class WebDavDiagnostics(IQFileApi file, GroupFileWebDavMapper ma
         return "当前 WebDAV 根目录:\n" + string.Join('\n', lines);
     }
 
-    public async Task<string> BuildGroupFileProbeTextAsync(long groupId)
+    public async Task<string> BuildGroupFileProbeTextAsync(string groupId)
     {
         var lines = new List<string>
         {
@@ -58,7 +58,7 @@ internal sealed class WebDavDiagnostics(IQFileApi file, GroupFileWebDavMapper ma
         lines.AddRange(files.Take(5).Select(file => $"[FILE] {file.FileName} ({file.FileId})"));
     }
 
-    private async Task AppendDownloadLineAsync(List<string> lines, long groupId, IReadOnlyList<QGroupFile> files)
+    private async Task AppendDownloadLineAsync(List<string> lines, string groupId, IReadOnlyList<QGroupFile> files)
     {
         if (files.Count == 0)
         {

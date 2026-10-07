@@ -1,13 +1,16 @@
 using ShiroBot.Model.QQ;
 using ShiroBot.SDK.Abstractions;
 using ShiroBot.SDK.Core;
+
 using ShiroBot.SDK.Models;
 using ShiroBot.SDK.Plugin;
 using Shirobot.Plugin.MyList.Webdav.Diagnostics;
 using Shirobot.Plugin.MyList.Webdav.Mapping;
 using Shirobot.Plugin.MyList.Webdav.Server;
 
-[assembly: ShiroBotApiCompatibility("0.8", "0.8")]
+[assembly: RequiresShiroBotPackage("shirobot.model.qq", MinimumVersion = "0.9.8")]
+
+[assembly: ShiroBotApiCompatibility("0.9.2", "0.9.2")]
 
 namespace Shirobot.Plugin.MyList;
 
@@ -36,15 +39,15 @@ public sealed class MyListPlugin : PluginBase
         Context.Config.Save(_config);
         BotLog.Info($"Shirobot.Plugin.MyList 配置已加载: enabled={_config.Enabled}, listen={string.Join(", ", _config.GetListenPrefixes())}, upload_mode={_config.GetNormalizedUploadMode()}, file_transfer_mode={_config.GetNormalizedFileTransferMode()}, upload_base64_threshold_mb={_config.UploadBase64ThresholdMb}, verbose_logging={_config.VerboseLogging}");
 
-        var qqSystem = Context.GetAdapterExtension<IQSystemApi>();
+        var qqGroups = Context.GetAdapterExtension<IQGroupApi>();
         var qqFile = Context.GetAdapterExtension<IQFileApi>();
-        if (qqSystem is null || qqFile is null)
+        if (qqGroups is null || (qqGroups.Capabilities & QGroupCapabilities.GroupList) == 0 || qqFile is null)
         {
-            BotLog.Warning("当前适配器不提供 QQ 群文件能力(IQSystemApi/IQFileApi),MyList 插件已跳过初始化。");
+            BotLog.Warning("当前适配器不提供 QQ 群文件能力(IQGroupApi(GroupList)/IQFileApi),MyList 插件已跳过初始化。");
             return Task.CompletedTask;
         }
 
-        _webDavMapper = new GroupFileWebDavMapper(qqSystem, qqFile, _config);
+        _webDavMapper = new GroupFileWebDavMapper(qqGroups, qqFile, _config);
         _diagnostics = new WebDavDiagnostics(qqFile, _webDavMapper);
 
         GroupCommands.MapExact("#webdav", HandleFilesAsync);
@@ -85,15 +88,15 @@ public sealed class MyListPlugin : PluginBase
 
     private async Task HandleGroupFileProbeAsync(MessageEvent message)
     {
-        if (!long.TryParse(message.Channel.Id, out var groupId))
+        if (message.Channel.Type != ChannelType.Group || !string.Equals(message.Platform, "qq", StringComparison.OrdinalIgnoreCase))
         {
-            await Context.Message.ReplyAsync(message, "当前群 ID 不是有效的 QQ 群号。");
+            await Context.Message.ReplyAsync(message, "当前消息不是有效的 QQ 群消息。");
             return;
         }
 
         var result = _diagnostics is null
             ? "WebDAV 诊断器未初始化。"
-            : await _diagnostics.BuildGroupFileProbeTextAsync(groupId);
+            : await _diagnostics.BuildGroupFileProbeTextAsync(message.Channel.Id);
         await Context.Message.ReplyAsync(message, result);
     }
 

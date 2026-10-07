@@ -24,7 +24,7 @@ public sealed class MyListConfig
 
     public bool VerboseLogging { get; set; } = false;
 
-    public long UploadTargetGroupId { get; set; } = 0;
+    public string UploadTargetGroupId { get; set; } = string.Empty;
 
     public string UploadTargetGroupName { get; set; } = "网盘群";
 
