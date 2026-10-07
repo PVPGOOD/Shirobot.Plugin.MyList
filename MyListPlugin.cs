@@ -18,7 +18,7 @@ namespace Shirobot.Plugin.MyList;
     "MyList",
     Name = "MyList",
     Description = "Shirobot.Plugin.MyList",
-    Version = "1.3.0",
+    Version = "1.4.0",
     GithubRepo = "PVPGOOD/Shirobot.Plugin.MyList",
     IsPluginSingleFile = true,
     SharedAssemblies = "ShiroBot.Model.QQ")]
