@@ -17,8 +17,10 @@ namespace Shirobot.Plugin.MyList;
 [BotPlugin(
     "MyList",
     Name = "MyList",
-    Description = "Shirobot.Plugin.MyList",
-    Version = "1.4.0",
+    Author = "PVPGOOD",
+    Category = PluginCategory.Utility,
+    Description = "将 QQ 群文件映射为 WebDAV 网盘，支持浏览、下载和上传。",
+    Version = "1.4.1",
     GithubRepo = "PVPGOOD/Shirobot.Plugin.MyList",
     IsPluginSingleFile = true,
     SharedAssemblies = "ShiroBot.Model.QQ")]
@@ -29,7 +31,7 @@ public sealed class MyListPlugin : PluginBase
     private GroupFileWebDavMapper? _webDavMapper;
     private WebDavDiagnostics? _diagnostics;
 
-    public override string Name => "Shirobot.Plugin.MyList";
+    public override string Name => "MyList";
 
     protected override Task LoadAsync()
     {

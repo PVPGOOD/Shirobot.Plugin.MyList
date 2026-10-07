@@ -1,6 +1,6 @@
 # Shirobot.Plugin.MyList
 
-当前发布：`v1.4.0`。本版本使用 SDK `0.9.8`，需要宿主 `0.9.8` 的新 ABI；旧宿主不兼容。
+当前发布：`v1.4.1`。本版本使用 SDK `0.9.8`，需要宿主 `0.9.8` 的新 ABI；旧宿主不兼容。
 
 `Shirobot.Plugin.MyList` 基于 [Shirobot](https://github.com/greepar/shirobot) 的插件项目。
 
