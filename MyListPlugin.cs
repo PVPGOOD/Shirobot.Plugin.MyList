@@ -1,3 +1,4 @@
+using ShiroBot.SDK.Config;
 using ShiroBot.Model.QQ;
 using ShiroBot.SDK.Abstractions;
 using ShiroBot.SDK.Core;
@@ -20,11 +21,11 @@ namespace Shirobot.Plugin.MyList;
     Author = "PVPGOOD",
     Category = PluginCategory.Utility,
     Description = "将 QQ 群文件映射为 WebDAV 网盘，支持浏览、下载和上传。",
-    Version = "1.4.1",
+    Version = "1.4.2",
     GithubRepo = "PVPGOOD/Shirobot.Plugin.MyList",
     IsPluginSingleFile = true,
     SharedAssemblies = "ShiroBot.Model.QQ")]
-public sealed class MyListPlugin : PluginBase
+public sealed class MyListPlugin : PluginBase<MyListConfig>
 {
     private MyListConfig _config = new();
     private VirtualWebDavServer? _server;
@@ -33,11 +34,46 @@ public sealed class MyListPlugin : PluginBase
 
     public override string Name => "MyList";
 
+    protected override Task OnConfigChangedAsync(MyListConfig previous, MyListConfig current, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        try { RebuildWebDav(current); }
+        catch (Exception applyError)
+        {
+            // A failed bind must be reported to the host; restore the previous listener when possible.
+            try { RebuildWebDav(previous); }
+            catch (Exception restoreError)
+            {
+                throw new AggregateException("WebDAV 配置应用失败，旧服务也未能恢复。", applyError, restoreError);
+            }
+            throw;
+        }
+        return Task.CompletedTask;
+    }
+
+    private void RebuildWebDav(MyListConfig config)
+    {
+        var groups = Context.GetAdapterExtension<IQGroupApi>();
+        var files = Context.GetAdapterExtension<IQFileApi>();
+        if (groups is null || (groups.Capabilities & QGroupCapabilities.GroupList) == 0 || files is null)
+            throw new NotSupportedException("当前适配器不提供 QQ 群文件能力，无法应用 WebDAV 配置。");
+        _server?.Dispose();
+        _server = null;
+        _config = config;
+        _webDavMapper = new GroupFileWebDavMapper(groups, files, config);
+        _diagnostics = new WebDavDiagnostics(files, _webDavMapper);
+        if (!config.Enabled) return;
+        var server = new VirtualWebDavServer(config, _webDavMapper);
+        try { server.Start(); }
+        catch { server.Dispose(); throw; }
+        _server = server;
+    }
+
     protected override Task LoadAsync()
     {
         BotLog.Info($"Shirobot.Plugin.MyList 开始初始化 config = {Context.Config.ConfigPath}");
 
-        _config = Context.Config.Load<MyListConfig>();
+        _config = Settings;
         Context.Config.Save(_config);
         BotLog.Info($"Shirobot.Plugin.MyList 配置已加载: enabled={_config.Enabled}, listen={string.Join(", ", _config.GetListenPrefixes())}, upload_mode={_config.GetNormalizedUploadMode()}, file_transfer_mode={_config.GetNormalizedFileTransferMode()}, upload_base64_threshold_mb={_config.UploadBase64ThresholdMb}, verbose_logging={_config.VerboseLogging}");
 

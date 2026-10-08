@@ -11,7 +11,7 @@ public sealed class MyListConfig
     public const string FileTransferDirect = "direct";
     public const string FileTransferSmb = "smb";
 
-    [ConfigField("启用群文件 WebDAV 服务；修改后重载插件生效。", Label = "启用 WebDAV")]
+    [ConfigField("启用群文件 WebDAV 服务；保存后自动重建服务并应用监听和身份验证设置。", Label = "启用 WebDAV")]
     public bool Enabled { get; set; } = true;
 
     [ConfigField("监听地址需以 / 结尾；监听地址列表为空时使用此项。", Label = "默认监听地址")]

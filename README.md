@@ -1,6 +1,6 @@
 # Shirobot.Plugin.MyList
 
-当前发布：`v1.4.1`。本版本使用 SDK `0.9.8`，需要宿主 `0.9.8` 的新 ABI；旧宿主不兼容。
+当前发布：`v1.4.2`。本版本使用 SDK `0.9.8`，需要宿主 `0.9.8` 的新 ABI；旧宿主不兼容。
 
 `Shirobot.Plugin.MyList` 基于 [Shirobot](https://github.com/greepar/shirobot) 的插件项目。
 
@@ -42,3 +42,5 @@
 本项目规范 `Shirobot` Plugin 开发流程 。
 
 运行要求：宿主最低版本 0.9.8，ShiroBot API 0.9.2；使用 ShiroBot.SDK 0.9.8 和 QQ Model 0.9.8。插件通过 IQGroupApi 的 GroupList 能力及 IQFileApi 探测群列表和群文件功能；群 ID 按原始字符串保存和传递。
+
+配置通过宿主统一接口应用；保存后等待应用完成。修改 config.toml 也由宿主监听并应用，无需重新加载插件。
